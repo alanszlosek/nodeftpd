@@ -1,6 +1,7 @@
 {
 	"name": "node-ftpd",
 	"version": "0.1.0",
+	"main": "./ftpd.js",
 	"dependencies": {
 	},
 	"devDependencies": {
