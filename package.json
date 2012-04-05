@@ -1,0 +1,9 @@
+{
+	"name": "node-ftpd",
+	"version": "0.1.0",
+	"dependencies": {
+	},
+	"devDependencies": {
+		"vows": "0.6.2"
+	}
+}
