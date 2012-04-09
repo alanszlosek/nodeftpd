@@ -504,12 +504,13 @@ function createServer(host, sandbox) {
                         socket.totsize = 0;
                         socket.filename = filename;
                     }
-                    fs.open(socket.sandbox + socket.filename, process.O_RDONLY, 0666, function (err, fd) {
-                        dotrace("DATA file " + socket.filename + " opened");
+                    // console.log(socket.sandbox + socket.filename);
+                    fs.open(socket.sandbox + socket.filename, 'r', 0666, function (err, fd) {
+                        // console.log("DATA file " + socket.filename + " opened");
                         function readChunk() {
                             fs.read(fd, 4096, socket.totsize, socket.mode, function(err, chunk, bytes_read) {
                                 if(err) {
-                                    dotrace("Erro reading chunk");
+                                    console.log("Erro reading chunk");
                                     throw err;
                                     return;
                                 }
@@ -519,7 +520,7 @@ function createServer(host, sandbox) {
                                     readChunk();
                                 }
                                 else {
-                                    dotrace("DATA file " + socket.filename + " closed");
+                                    // console.log("DATA file " + socket.filename + " closed");
                                     pasvconn.end();
                                     socket.write("226 Closing data connection, sent " + socket.totsize + " bytes\r\n");
                                     fs.close(fd);
@@ -528,7 +529,7 @@ function createServer(host, sandbox) {
                             });
                         }
                         if(err) {
-                            dotrace("Error at read");
+                            console.log("Error at read");
                             throw err;
                         }
                         else {
