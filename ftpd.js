@@ -161,7 +161,7 @@ function createServer(host, sandbox) {
             data = (data+'').trim();
             logIf(2, "FTP command: " + data, socket);
 
-            var command, arg;
+            var command, commandArg;
             var index = data.indexOf(" ");
             if (index > 0) {
                 command = data.substring(0, index).trim().toUpperCase();
