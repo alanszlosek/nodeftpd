@@ -172,6 +172,9 @@ function createServer(host, sandbox) {
                 commandArg = '';
             }
             
+            // Allow for X commands, seems simple enough and seems to work for all tests I've done.
+            if(command !== 'XPWD' && command.substr(0, 1)=='X') command = command.substr(1);
+            //console.log('Command: ', command);
             switch(command)
             {
             case "ABOR":
@@ -214,7 +217,9 @@ function createServer(host, sandbox) {
             case "CWD":
                 // Change working directory.
                 if (!authenticated()) break;
-                var path = PathModule.join(socket.sandbox, PathModule.resolve(socket.fs.cwd(), commandArg));
+                // Updated from path.resolve to path.join, this fixes windows usage
+                var path = PathModule.join(socket.sandbox, commandArg);
+                //console.log('CWD: ', path);
                 PathModule.exists(path, function(exists) {
                     if (!exists) {
                         socket.write("550 Folder not found.\r\n");
@@ -226,7 +231,8 @@ function createServer(host, sandbox) {
             case "DELE":
                 // Delete file.
                 if (!authenticated()) break;
-                var filename = PathModule.resolve(socket.fs.cwd(), commandArg);
+                // Updated from path.resolve to path.join, this fixes windows usage
+                var filename = PathModule.join(socket.fs.cwd(), commandArg);
                 fs.unlink( PathModule.join(socket.sandbox, filename), function(err){
                     if (err) {
                         logIf(0, "Error deleting file: "+filename+", "+err, socket);
@@ -291,7 +297,8 @@ function createServer(host, sandbox) {
                     var failure = function() {
                         pasvconn.end();
                     };
-					var path = PathModule.join(socket.sandbox, socket.fs.cwd());
+                    // Updated from path.resolve to path.join, this fixes windows usage
+                    var path = PathModule.join(socket.sandbox, socket.fs.cwd());
                     if (pasvconn.readable) pasvconn.resume();
                     logIf(3, "Sending file list", socket);
                     fs.readdir(path, function(err, files) {
@@ -304,6 +311,7 @@ function createServer(host, sandbox) {
                                 logIf(3, "Directory has " + files.length + " files", socket);
                                 for (var i = 0; i < files.length; i++) {
                                     var file = files[ i ];
+                                    // Updated from path.resolve to path.join, this fixes windows usage
                                     var s = fs.statSync( PathModule.join(path, file) );
                                     var line = s.isDirectory() ? 'd' : '-';
                                     if (i > 0) pasvconn.write("\r\n");
@@ -349,7 +357,8 @@ function createServer(host, sandbox) {
             case "MKD":
                 // Make directory.
                 if (!authenticated()) break;
-                var filename = PathModule.resolve(socket.fs.cwd(), commandArg);
+                // Updated from path.resolve to path.join, this fixes windows usage
+                var filename = PathModule.join(socket.fs.cwd(), commandArg);
                 fs.mkdir( PathModule.join(socket.sandbox, filename), 0755, function(err){
                     if(err) {
                         logIf(0, "Error making directory " + filename + " because " + err, socket);
@@ -401,6 +410,7 @@ function createServer(host, sandbox) {
                     if (commandArg) {
                         // Remove double slashes or "up directory"
                         commandArg = commandArg.replace(/\/{2,}|\.{2}/g, '');
+                        // Updated from path.resolve to path.join, this fixes windows usage
                         if (commandArg.substr(0, 1) == '/') {
                             temp = PathModule.join(socket.sandbox, commandArg);
                         } else {
@@ -439,10 +449,16 @@ function createServer(host, sandbox) {
                 socket.emit(
                     "command:pass",
                     commandArg,
-                    function(username) { // implementor should call this on successful password check
+                    // Updated prototype to allow for passing back the userpath instead of just using the username
+                    function(username, userpath) { // implementor should call this on successful password check
                         socket.write("230 Logged on\r\n");
                         socket.username = username;
-                        socket.sandbox = PathModule.join(server.baseSandbox, username);
+                        // Updated from path.resolve to path.join, this fixes windows usage
+                        socket.sandbox = PathModule.join(server.baseSandbox, typeof(userpath)=='undefined'?username:userpath);
+                        try{
+                          // Enforce that the directory exists, nice safe bet
+                          fs.mkdirSync(socket.sandbox);
+                        }catch(e){}
                     },
                     function() { // call second callback if password incorrect
                         socket.write("530 Invalid password\r\n");
@@ -561,12 +577,14 @@ function createServer(host, sandbox) {
                 whenDataWritable( function(pasvconn) {
                     pasvconn.setEncoding(socket.mode);
 
-                    var filename = PathModule.resolve('/', commandArg);
+                    // Updated from path.resolve to path.join, this fixes windows usage
+                    var filename = PathModule.join(socket.fs.cwd(), commandArg);
                     if(filename != socket.filename)
                     {
                         socket.totsize = 0;
                         socket.filename = filename;
                     }
+                    // Updated from path.resolve to path.join, this fixes windows usage
                     fs.open( PathModule.join(socket.sandbox, socket.filename), "r", function (err, fd) {
                         console.trace("DATA file " + socket.filename + " opened");
                         socket.write("150 Opening " + socket.mode.toUpperCase() + " mode data connection\r\n");
@@ -604,7 +622,8 @@ function createServer(host, sandbox) {
             case "RMD":
                 // Remove a directory.
                 if (!authenticated()) break;
-                var filename = PathModule.resolve(socket.fs.cwd(), commandArg);
+                // Updated from path.resolve to path.join, this fixes windows usage
+                var filename = PathModule.join(socket.fs.cwd(), commandArg);
                 fs.rmdir( PathModule.join(socket.sandbox, filename), function(err){
                     if(err) {
                         logIf(0, "Error removing directory "+filename, socket);
@@ -616,8 +635,9 @@ function createServer(host, sandbox) {
             case "RNFR":
                 // Rename from.
                 if (!authenticated()) break;
-                socket.filefrom = PathModule.resolve(socket.fs.cwd(), commandArg);
+                socket.filefrom = commandArg;//PathModule.resolve(socket.fs.cwd(), commandArg);
                 logIf(3, "Rename from " + socket.filefrom, socket);
+                // Updated from path.resolve to path.join, this fixes windows usage
                 path.exists( PathModule.join(socket.sandbox, socket.filefrom), function(exists) {
                     if (exists) socket.write("350 File exists, ready for destination name\r\n");
                     else socket.write("350 Command failed, file does not exist\r\n");
@@ -626,7 +646,8 @@ function createServer(host, sandbox) {
             case "RNTO":
                 // Rename to.
                 if (!authenticated()) break;
-                var fileto = PathModule.resolve(socket.fs.cwd(), commandArg);
+                var fileto = commandArg;//PathModule.resolve(socket.fs.cwd(), commandArg);
+                // Updated from path.resolve to path.join, this fixes windows usage
                 fs.rename( PathModule.join(socket.sandbox, socket.filefrom), PathModule.join(socket.sandbox, fileto), function(err){
                     if(err) {
                         logIf(3, "Error renaming file from "+socket.filefrom+" to "+fileto, socket);
@@ -642,7 +663,8 @@ function createServer(host, sandbox) {
             case "SIZE":
                 // Return the size of a file. (RFC 3659)
                 if (!authenticated()) break;
-                var filename = PathModule.resolve(socket.fs.cwd(), commandArg);
+                // Updated from path.resolve to path.join, this fixes windows usage
+                var filename = PathModule.join(socket.fs.cwd(), commandArg);
                 fs.stat( PathModule.join(socket.sandbox, filename), function (err, s) {
                     if(err) { 
                         logIf(0, "Error getting size of file: "+filename, socket);
@@ -678,8 +700,8 @@ function createServer(host, sandbox) {
                 if (!authenticated()) break;
                 whenDataWritable( function(dataSocket) {
                     // dataSocket comes to us paused, so we have a chance to create the file before accepting data
-                    filename = PathModule.resolve(socket.fs.cwd(), commandArg);
-                    fs.open( PathModule.join(socket.sandbox, filename), 'w', 0644, function(err, fd) {
+                    filename = PathModule.join(socket.fs.cwd(), commandArg);
+                    fs.open( filename = PathModule.join(socket.sandbox, filename), 'w', 0644, function(err, fd) {
                         if(err) {
                             logIf(0, 'Error opening/creating file: ' + filename, socket);
                             socket.write("553 Could not create file\r\n");
@@ -698,7 +720,7 @@ function createServer(host, sandbox) {
                             var writeCallback = function(err, written) {
                                 var buf;
                                 if (err) {
-                                    logIf(0, "Error writing " + PathModule.join(socket.sandbox, filename) + ": " + err, socket);
+                                    logIf(0, "Error writing " + filename + ": " + err, socket);
                                     return;
                                 }
                                 writtenToFile += written;
