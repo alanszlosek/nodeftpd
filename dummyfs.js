@@ -7,7 +7,8 @@ function dummyfs(root) {
 exports.dummyfs = dummyfs;
 
 dummyfs.prototype.chdir = function(dir) {
-	this.dir = path.resolve(this.dir, dir);
+	// Updated from path.resolve to path.join, this fixes windows usage
+  this.dir = path.join(this.dir, dir);
 	return(this.dir);
 }
 
