@@ -4,6 +4,7 @@ var fs = require("fs");
 var dummyfs = require("./dummyfs");
 var PathModule = require("path");
 var glob = require('./glob');
+var natUpnp = require('nat-upnp');
 require('./date-format');
 
 /*
@@ -41,6 +42,9 @@ function createServer(host, sandbox) {
     var server = net.createServer();
     server.baseSandbox = sandbox; // path which we're starting relative to
     server.debugging = 0;
+    
+    //UPnP client
+    var UPnPclient = natUpnp.createClient();
 
     var logIf = function(level, message, socket) {
         if (server.debugging >= level) {
@@ -509,8 +513,31 @@ function createServer(host, sandbox) {
                     var i1 = parseInt(port / 256);
                     var i2 = parseInt(port % 256);
                     socket.write("227 Entering Passive Mode (" + host.split(".").join(",") + "," + i1 + "," + i2 + ")\r\n");
+                    
+                    UPnPclient.portMapping({
+						public: port,
+						private: port,
+						ttl: 10
+					}, function(err) {
+							if(err) {
+								logIf(1, "UPnP: Failed to map port " + port + err, socket);
+								return;
+							}
+							
+							logIf(3, "UPnP: Mapped port "+ port + ".", socket);
+					});
                 });
                 pasv.on("close", function() {
+                    var port = socket.dataPort;
+                	UPnPclient.portUnmapping({
+                		public: port
+					}, function(err){
+						if(err) {
+							logIf(3, "UPnP: Failed to unmap port " + port + err, socket);
+							return;
+						}
+						logIf(3, "UPnP: Unmapped port "+ port +".", socket);
+					});
                     logIf(3, "Passive data listener closed", socket);
                     if (socket.readable) socket.resume(); // just in case
                 });
