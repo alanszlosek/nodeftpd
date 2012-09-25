@@ -561,7 +561,7 @@ function createServer(host, sandbox) {
                 whenDataWritable( function(pasvconn) {
                     pasvconn.setEncoding(socket.mode);
 
-                    var filename = PathModule.resolve('/', commandArg);
+                    var filename = PathModule.resolve(socket.fs.cwd(), commandArg);
                     if(filename != socket.filename)
                     {
                         socket.totsize = 0;
