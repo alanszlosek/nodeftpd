@@ -600,7 +600,7 @@ function createServer(host, sandbox) {
                             });
                         }
                         if(err) {
-                            dotrace("Error at read");
+                            console.trace("Error at read");
                             throw err;
                         }
                         else {
