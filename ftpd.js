@@ -443,10 +443,17 @@ function createServer(host, sandbox) {
                 socket.emit(
                     "command:pass",
                     commandArg,
-                    function(username) { // implementor should call this on successful password check
+                    function(username, sandboxUsername) { // implementor should call this on successful password check
                         socket.write("230 Logged on\r\n");
                         socket.username = username;
-                        socket.sandbox = PathModule.join(server.baseSandbox, username);
+                        
+                        //Sandbox the username by default, but overwrite is possible (true/false)
+                        sandboxUsername = (typeof sandboxUsername === "undefined") ? true : sandboxUsername;
+                        if(sandboxUsername) {
+	                        socket.sandbox = PathModule.join(server.baseSandbox, username);
+	                    } else {
+	                    	socket.sandbox = server.baseSandbox;
+	                    }
                     },
                     function() { // call second callback if password incorrect
                         socket.write("530 Invalid password\r\n");
