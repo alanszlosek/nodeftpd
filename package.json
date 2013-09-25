@@ -3,12 +3,26 @@
   "version": "1.0.0",
   "dependencies": {},
   "devDependencies": {
-    "async": "~0.1.15",
-    "mocha": "~0.12.1",
-    "should": "~0.5.1",
+    "async": "*",
+    "mocha": "*",
+    "should": "*",
     "jsftp": "*"
   },
   "scripts": {
-    "test" : "mocha specs/* --globals commandArg"
+    "test": "mocha specs/* --globals commandArg"
+  },
+  "description": "Fork of alanszlosek/nodeftpd - a simple FTP server written in Node.JS",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cabrel/nodeftpd.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cabrel/nodeftpd/issues"
   }
 }
