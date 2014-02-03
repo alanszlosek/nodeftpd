@@ -22,6 +22,92 @@ Status
 To Do
 
 * Fire more events to allow customizations: directory changes, file uploads, etc
+* Unsupported commands:
+
+
+```
+case "ABOR":
+    // Abort an active file transfer.
+case "ACCT":
+    // Account information
+case "ADAT":
+    // Authentication/Security Data (RFC 2228)
+case "ALLO":
+    // Allocate sufficient disk space to receive a file.
+case "APPE":
+    // Append.
+case "AUTH":
+    // Authentication/Security Mechanism (RFC 2228)
+case "CCC":
+    // Clear Command Channel (RFC 2228)
+case "CONF":
+    // Confidentiality Protection Command (RFC 697)
+case "ENC":
+    // Privacy Protected Channel (RFC 2228)
+case "EPRT":
+    // Specifies an extended address and port to which the server should connect. (RFC 2428)
+case "EPSV":
+    // Enter extended passive mode. (RFC 2428)
+case "HELP":
+    // Returns usage documentation on a command if specified, else a general help document is returned.
+            214-The following commands are recognized:
+            USER   PASS   QUIT   CWD    PDD    PORT   PASV   TYPE
+            LIST   REST   CDUP   RETR   STOR   SIZE   DELE   RMD
+            MKD    RNFR   RNTO   ABOR   SYST   NOOP   APPE   NLST
+            MDTM   XPWD   XCUP   XMKD   XRMD   NOP    EPSV   EPRT
+            AUTH   ADAT   PBSZ   PROT   FEAT   MODE   OPTS   HELP
+            ALLO   MLST   MLSD   SITE   P@SW   STRU   CLNT   MFMT
+            214 Have a nice day.
+case "LANG":
+    // Language Negotiation (RFC 2640)
+case "LPRT":
+    // Specifies a long address and port to which the server should connect. (RFC 1639)
+case "LPSV":
+    // Enter long passive mode. (RFC 1639)
+case "MDTM":
+    // Return the last-modified time of a specified file. (RFC 3659)
+case "MIC":
+    // Integrity Protected Command (RFC 2228)
+case "MLSD":
+    // Lists the contents of a directory if a directory is named. (RFC 3659)
+case "MLST":
+    // Provides data about exactly the object named on its command line, and no others. (RFC 3659)
+case "MODE":
+    // Sets the transfer mode (Stream, Block, or Compressed).
+case "NOOP":
+    // No operation (dummy packet; used mostly on keepalives).
+case "OPTS":
+    // Select options for a feature. (RFC 2389)
+case "PBSZ":
+    // Protection Buffer Size (RFC 2228)
+case "REIN":
+    // Re initializes the connection.
+case "REST":
+    // Restart transfer from the specified point.
+case "SITE":
+    // Sends site specific commands to remote internals.server.
+case "SMNT":
+    // Mount file structure.
+case "STAT":
+    // Returns the current status.
+
+    from FileZilla
+            Connected to 192.168.2.100.
+            No proxy connection.
+            Mode: stream; Type: ascii; Form: non-print; Structure: file
+            Verbose: on; Bell: off; Prompting: on; Globbing: on
+            Store unique: off; Receive unique: off
+            Case: off; CR stripping: on
+            Ntrans: off
+            Nmap: off
+            Hash mark printing: off; Use of PORT cmds: on
+            Tick counter printing: off
+case "STOU":
+    // Store file uniquely.
+case "STRU":
+    // Set file transfer structure.
+```
+
 
 Known issues
 
@@ -75,7 +161,7 @@ Old Readme Follows ...
 
 ### 28 March 2010
 
-Forked from http://github.com/billywhizz/nodeftpd 
+Forked from http://github.com/billywhizz/nodeftpd
 Andrew Johnston - http://blog.beardsoft.com/node-ftp-server-initial-release
 
 Andrew's initial release was tested about node.js 0.1.21
@@ -102,7 +188,7 @@ Also, not tested in Passive mode yet, but I think it works??
 
 One thing I had problems with was the root filesystem of the FTP server.
 Even though I was running the ftpd.js from /home/rob/workspace it changed
-it to "/". This meant that if I tried to get the SIZE of a file, eg: 
+it to "/". This meant that if I tried to get the SIZE of a file, eg:
 /home/rob/workspace/file.txt
 it tried to get the SIZE of
 /home/rob/workspace//home/rob/workspace/file.txt
