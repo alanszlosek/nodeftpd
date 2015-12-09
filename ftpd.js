@@ -18,7 +18,7 @@ TODO:
 
 
 // host should be an IP address, and sandbox a path without trailing slash for now
-function createServer(host, sandbox) {
+function createServer(host, sandbox, options) {
     // make sure host is an IP address, otherwise DATA connections will likely break
     var server = net.createServer();
     server.baseSandbox = sandbox; // path which we're starting relative to
@@ -319,7 +319,12 @@ function createServer(host, sandbox) {
                         function(username) { // implementor should call this on successful password check
                             socket.write("230 Logged on\r\n");
                             socket.username = username;
-                            socket.sandbox = PathModule.join(server.baseSandbox, username);
+                            if (options && options.shared) {
+                                socket.sandbox = server.baseSandbox;
+                            }
+                            else {
+                                socket.sandbox = PathModule.join(server.baseSandbox, username);
+                            }
                         },
                         function() { // call second callback if password incorrect
                             socket.write("530 Invalid password\r\n");
